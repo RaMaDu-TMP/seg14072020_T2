@@ -1,8 +1,10 @@
 package br.edu.usf.chat;
 
-import java.io.*;
-import java.net.*;
- 
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
+
 /**
  * This thread is responsible for reading server's input and printing it
  * to the console.
@@ -11,29 +13,30 @@ import java.net.*;
  * @author www.codejava.net
  */
 public class ReadThread extends Thread {
-    private BufferedReader reader;
+    //    private BufferedReader reader;
     private Socket socket;
     private ChatClient client;
- 
+    DataInputStream inputStream;
+
     public ReadThread(Socket socket, ChatClient client) {
         this.socket = socket;
         this.client = client;
- 
+
         try {
             InputStream input = socket.getInputStream();
-            reader = new BufferedReader(new InputStreamReader(input));
+            inputStream = new DataInputStream(socket.getInputStream());
         } catch (IOException ex) {
             System.out.println("Error getting input stream: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
- 
+
     public void run() {
         while (true) {
             try {
-                String response = reader.readLine();
+                String response = inputStream.readUTF();
                 System.out.println("\n" + response);
- 
+
                 // prints the username after displaying the server's message
                 if (client.getUserName() != null) {
                     System.out.print("[" + client.getUserName() + "]: ");

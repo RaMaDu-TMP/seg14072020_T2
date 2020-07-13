@@ -1,18 +1,16 @@
 package br.edu.usf.chat;
 
+import com.sun.net.ssl.internal.ssl.Provider;
+
+import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.Security;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * This is the chat server program.
- * Press Ctrl + C to terminate the program.
- *
- * @author www.codejava.net
- */
 public class ChatServer {
     private int port;
     private Set<String> userNames = new HashSet<>();
@@ -24,12 +22,14 @@ public class ChatServer {
 
     public void execute(boolean ssl) {
         if (ssl) {
+            try {
+                SSLServerSocketFactory sslServerSocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+                SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketfactory.createServerSocket(port);
 
-            try (final ServerSocket serverSocket = SSLServerSocketFactory.getDefault().createServerSocket(8989)) {
                 System.out.println("Chat Server is listening on port " + port);
 
                 while (true) {
-                    final Socket accept = serverSocket.accept();
+                    final Socket accept = sslServerSocket.accept();
                     System.out.println("New user connected");
 
                     UserThread newUser = new UserThread(accept, this);
@@ -39,7 +39,6 @@ public class ChatServer {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         } else {
             try (ServerSocket serverSocket = new ServerSocket(port)) {
 
@@ -68,7 +67,9 @@ public class ChatServer {
             System.exit(0);
         }
 
-        System.setProperty("javax.net.ssl.keyStore", "chat.store");
+        Security.addProvider(new Provider());
+
+        System.setProperty("javax.net.ssl.keyStore", "group_chat_key_store");
         System.setProperty("javax.net.ssl.keyStorePassword", "abcd1234");
 
         int port = Integer.parseInt(args[0]);
@@ -81,6 +82,8 @@ public class ChatServer {
      * Delivers a message from one user to others (broadcasting)
      */
     void broadcast(String message, UserThread excludeUser) {
+        System.out.println("Message recieved: " + message);
+
         for (UserThread aUser : userThreads) {
             if (aUser != excludeUser) {
                 aUser.sendMessage(message);
