@@ -53,7 +53,7 @@ public class ChatServer {
         System.setProperty("javax.net.ssl.keyStorePassword", "abcd1234");
 
         final int port = Integer.parseInt(args[0]);
-        final boolean ssl = args.length == 3 && "ssl".equalsIgnoreCase(args[2]);
+        final boolean ssl = args.length == 2 && "ssl".equalsIgnoreCase(args[1]);
 
         new ChatServer().execute(port, ssl);
     }
