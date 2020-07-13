@@ -2,7 +2,6 @@ package br.edu.usf.chat;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 
 /**
@@ -13,22 +12,12 @@ import java.net.Socket;
  * @author www.codejava.net
  */
 public class ReadThread extends Thread {
-    //    private BufferedReader reader;
-    private Socket socket;
-    private ChatClient client;
-    DataInputStream inputStream;
+    private final ChatClient client;
+    private final DataInputStream inputStream;
 
-    public ReadThread(Socket socket, ChatClient client) {
-        this.socket = socket;
+    public ReadThread(Socket socket, ChatClient client) throws IOException {
         this.client = client;
-
-        try {
-            InputStream input = socket.getInputStream();
-            inputStream = new DataInputStream(socket.getInputStream());
-        } catch (IOException ex) {
-            System.out.println("Error getting input stream: " + ex.getMessage());
-            ex.printStackTrace();
-        }
+        this.inputStream = new DataInputStream(socket.getInputStream());
     }
 
     public void run() {

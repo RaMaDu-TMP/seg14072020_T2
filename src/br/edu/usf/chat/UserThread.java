@@ -1,34 +1,25 @@
 package br.edu.usf.chat;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 
-/**
- * This thread handles connection for each connected client, so the server
- * can handle multiple clients at the same time.
- *
- * @author www.codejava.net
- */
 public class UserThread extends Thread {
-    private Socket socket;
-    private ChatServer server;
-    //    private PrintWriter writer;
-    DataOutputStream outputStream;
+    private final Socket socket;
+    private final ChatServer server;
+    private final DataOutputStream outputStream;
+    private final DataInputStream inputStream;
 
-    public UserThread(Socket socket, ChatServer server) {
+    public UserThread(Socket socket, ChatServer server) throws IOException {
         this.socket = socket;
         this.server = server;
+        this.outputStream = new DataOutputStream(socket.getOutputStream());
+        this.inputStream = new DataInputStream(socket.getInputStream());
     }
 
     public void run() {
         try {
-            InputStream input = socket.getInputStream();
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-            DataInputStream inputStream = new DataInputStream(socket.getInputStream());
-
-            OutputStream output = socket.getOutputStream();
-            outputStream = new DataOutputStream(socket.getOutputStream());
-
             printUsers();
 
             String userName = inputStream.readUTF();
@@ -44,12 +35,12 @@ public class UserThread extends Thread {
                 serverMessage = "[" + userName + "]: " + clientMessage;
                 server.broadcast(serverMessage, this);
 
-            } while (!clientMessage.equals("bye"));
+            } while (!clientMessage.equals(":q"));
 
             server.removeUser(userName, this);
             socket.close();
 
-            serverMessage = userName + " has quitted.";
+            serverMessage = userName + " has quited.";
             server.broadcast(serverMessage, this);
 
         } catch (IOException ex) {
@@ -64,8 +55,7 @@ public class UserThread extends Thread {
     void printUsers() {
         try {
             outputStream.writeUTF("Connected users: " + server.getUserNames());
-            if (server.hasUsers()) {
-            } else {
+            if (!server.hasUsers()) {
                 outputStream.writeUTF("No other users connected");
             }
         } catch (IOException e) {
